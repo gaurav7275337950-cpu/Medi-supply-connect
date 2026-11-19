@@ -1,0 +1,366 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // Global safety net: default deny everything
+    match /{document=**} {
+      allow read, write: if false;
+    }
+
+    // Connection test document (read-only health check)
+    match /test/connection {
+      allow get: if true;
+    }
+
+    // Global helper primitives
+    function isValidId(id) {
+      return id is string && id.size() >= 1 && id.size() <= 128 && id.matches('^[a-zA-Z0-9_\\-]+$');
+    }
+
+    function incoming() {
+      return request.resource.data;
+    }
+
+    function existing() {
+      return resource.data;
+    }
+
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    function isVerifiedUser() {
+      return isSignedIn() && request.auth.token.email_verified == true;
+    }
+
+    function isOwner(userId) {
+      return isVerifiedUser() && request.auth.uid == userId;
+    }
+
+    function isAdmin() {
+      return isVerifiedUser() && (
+        request.auth.token.email == 'gaurav7275337950@gmail.com' ||
+        exists(/databases/$(database)/documents/admins/$(request.auth.uid))
+      );
+    }
+
+    // Validation Blueprints
+    function isValidUserProfile(data) {
+      return data.keys().hasAll([
+          'uid', 'displayName', 'email', 'pharmacyName',
+          'city', 'state', 'role', 'createdAt', 'updatedAt'
+        ]) &&
+        data.keys().hasOnly([
+          'uid', 'displayName', 'email', 'photoURL', 'pharmacyName',
+          'drugLicenseNo', 'gstin', 'city', 'state', 'phone',
+          'role', 'createdAt', 'updatedAt'
+        ]) &&
+        isValidId(data.uid) &&
+        data.displayName is string && data.displayName.size() >= 1 && data.displayName.size() <= 120 &&
+        data.email is string && data.email.size() >= 3 && data.email.size() <= 254 &&
+        (!('photoURL' in data) || (data.photoURL is string && data.photoURL.size() <= 500)) &&
+        data.pharmacyName is string && data.pharmacyName.size() >= 1 && data.pharmacyName.size() <= 140 &&
+        (!('drugLicenseNo' in data) || (data.drugLicenseNo is string && data.drugLicenseNo.size() <= 60)) &&
+        (!('gstin' in data) || (data.gstin is string && data.gstin.size() <= 20)) &&
+        data.city is string && data.city.size() >= 1 && data.city.size() <= 80 &&
+        data.state in ['Uttar Pradesh', 'Uttarakhand', 'Other'] &&
+        (!('phone' in data) || (data.phone is string && data.phone.size() <= 20)) &&
+        data.role in ['pharmacy', 'admin'] &&
+        data.createdAt is timestamp &&
+        data.updatedAt is timestamp;
+    }
+
+    function isValidWatchlistItem(data) {
+      return data.keys().hasAll([
+          'medicineId', 'medicineName', 'composition',
+          'targetMaxPtr', 'preferredQty', 'createdAt', 'updatedAt'
+        ]) &&
+        data.keys().hasOnly([
+          'medicineId', 'medicineName', 'composition',
+          'targetMaxPtr', 'preferredQty', 'notes', 'createdAt', 'updatedAt'
+        ]) &&
+        isValidId(data.medicineId) &&
+        data.medicineName is string && data.medicineName.size() >= 1 && data.medicineName.size() <= 140 &&
+        data.composition is string && data.composition.size() >= 1 && data.composition.size() <= 200 &&
+        data.targetMaxPtr is number && data.targetMaxPtr >= 0 && data.targetMaxPtr <= 1000000 &&
+        data.preferredQty is int && data.preferredQty >= 1 && data.preferredQty <= 10000 &&
+        (!('notes' in data) || (data.notes is string && data.notes.size() <= 240)) &&
+        data.createdAt is timestamp &&
+        data.updatedAt is timestamp;
+    }
+
+    function isValidDistributor(data) {
+      return data.keys().hasAll([
+          'id', 'name', 'city', 'state', 'licenseNumber',
+          'deliveryWindow', 'minOrderInr', 'rating', 'verified', 'active',
+          'createdAt', 'updatedAt'
+        ]) &&
+        data.keys().hasOnly([
+          'id', 'name', 'city', 'state', 'licenseNumber',
+          'deliveryWindow', 'minOrderInr', 'rating', 'verified', 'active',
+          'createdAt', 'updatedAt'
+        ]) &&
+        isValidId(data.id) &&
+        data.name is string && data.name.size() >= 1 && data.name.size() <= 140 &&
+        data.city is string && data.city.size() >= 1 && data.city.size() <= 80 &&
+        data.state in ['Uttar Pradesh', 'Uttarakhand'] &&
+        data.licenseNumber is string && data.licenseNumber.size() >= 1 && data.licenseNumber.size() <= 60 &&
+        data.deliveryWindow is string && data.deliveryWindow.size() >= 1 && data.deliveryWindow.size() <= 60 &&
+        data.minOrderInr is number && data.minOrderInr >= 0 && data.minOrderInr <= 1000000 &&
+        data.rating is number && data.rating >= 0 && data.rating <= 5 &&
+        data.verified is bool &&
+        data.active is bool &&
+        data.createdAt is timestamp &&
+        data.updatedAt is timestamp;
+    }
+
+    function isValidMedicineOffer(data) {
+      return data.keys().hasAll([
+          'id', 'medicineId', 'medicineName', 'composition', 'manufacturer',
+          'packSize', 'category', 'hsnCode', 'mrpInr', 'distributorId',
+          'distributorName', 'distributorCity', 'ptrInr', 'schemeLabel',
+          'stockQty', 'stockStatus', 'minQty', 'deliveryEta', 'expiryDate',
+          'createdAt', 'updatedAt'
+        ]) &&
+        data.keys().hasOnly([
+          'id', 'medicineId', 'medicineName', 'composition', 'manufacturer',
+          'packSize', 'category', 'hsnCode', 'mrpInr', 'distributorId',
+          'distributorName', 'distributorCity', 'ptrInr', 'schemeLabel',
+          'stockQty', 'stockStatus', 'minQty', 'deliveryEta', 'expiryDate',
+          'createdAt', 'updatedAt'
+        ]) &&
+        isValidId(data.id) &&
+        isValidId(data.medicineId) &&
+        data.medicineName is string && data.medicineName.size() >= 1 && data.medicineName.size() <= 140 &&
+        data.composition is string && data.composition.size() >= 1 && data.composition.size() <= 200 &&
+        data.manufacturer is string && data.manufacturer.size() >= 1 && data.manufacturer.size() <= 120 &&
+        data.packSize is string && data.packSize.size() >= 1 && data.packSize.size() <= 60 &&
+        data.category in [
+          'Antibiotics', 'Cardiac & Diabetic', 'Gastro & Acid Reflux',
+          'Pain & Fever', 'Respiratory', 'Vitamins & OTC'
+        ] &&
+        data.hsnCode is string && data.hsnCode.size() >= 1 && data.hsnCode.size() <= 20 &&
+        data.mrpInr is number && data.mrpInr > 0 && data.mrpInr <= 1000000 &&
+        isValidId(data.distributorId) &&
+        data.distributorName is string && data.distributorName.size() >= 1 && data.distributorName.size() <= 140 &&
+        data.distributorCity is string && data.distributorCity.size() >= 1 && data.distributorCity.size() <= 80 &&
+        data.ptrInr is number && data.ptrInr > 0 && data.ptrInr <= 1000000 &&
+        data.schemeLabel is string && data.schemeLabel.size() >= 1 && data.schemeLabel.size() <= 60 &&
+        data.stockQty is int && data.stockQty >= 0 && data.stockQty <= 1000000 &&
+        data.stockStatus in ['In Stock', 'Low Stock', 'Out of Stock'] &&
+        data.minQty is int && data.minQty >= 1 && data.minQty <= 10000 &&
+        data.deliveryEta is string && data.deliveryEta.size() >= 1 && data.deliveryEta.size() <= 60 &&
+        data.expiryDate is string && data.expiryDate.size() >= 1 && data.expiryDate.size() <= 20 &&
+        data.createdAt is timestamp &&
+        data.updatedAt is timestamp;
+    }
+
+    function isValidOrder(data) {
+      return data.keys().hasAll([
+          'orderNumber', 'pharmacyUid', 'pharmacyName', 'pharmacyCity', 'pharmacyState',
+          'distributorId', 'distributorName', 'itemCount', 'subtotalInr',
+          'platformFeeInr', 'totalInr', 'status', 'deliveryEta', 'createdAt', 'updatedAt'
+        ]) &&
+        data.keys().hasOnly([
+          'orderNumber', 'pharmacyUid', 'pharmacyName', 'pharmacyCity', 'pharmacyState',
+          'distributorId', 'distributorName', 'itemCount', 'subtotalInr',
+          'platformFeeInr', 'totalInr', 'status', 'deliveryEta', 'notes', 'createdAt', 'updatedAt'
+        ]) &&
+        data.orderNumber is string && data.orderNumber.size() >= 1 && data.orderNumber.size() <= 40 &&
+        isValidId(data.pharmacyUid) &&
+        data.pharmacyName is string && data.pharmacyName.size() >= 1 && data.pharmacyName.size() <= 140 &&
+        data.pharmacyCity is string && data.pharmacyCity.size() >= 1 && data.pharmacyCity.size() <= 80 &&
+        data.pharmacyState is string && data.pharmacyState.size() >= 1 && data.pharmacyState.size() <= 60 &&
+        isValidId(data.distributorId) &&
+        data.distributorName is string && data.distributorName.size() >= 1 && data.distributorName.size() <= 140 &&
+        data.itemCount is int && data.itemCount >= 1 && data.itemCount <= 100 &&
+        data.subtotalInr is number && data.subtotalInr > 0 && data.subtotalInr <= 10000000 &&
+        data.platformFeeInr is number && data.platformFeeInr >= 0 && data.platformFeeInr <= 5000 &&
+        data.totalInr is number && data.totalInr >= data.subtotalInr && data.totalInr <= 10005000 &&
+        data.status in ['Placed', 'Confirmed', 'Dispatched', 'Delivered', 'Cancelled'] &&
+        data.deliveryEta is string && data.deliveryEta.size() >= 1 && data.deliveryEta.size() <= 60 &&
+        (!('notes' in data) || (data.notes is string && data.notes.size() <= 400)) &&
+        data.createdAt is timestamp &&
+        data.updatedAt is timestamp;
+    }
+
+    function isValidOrderItem(data, orderId) {
+      return data.keys().hasAll([
+          'orderId', 'pharmacyUid', 'offerId', 'medicineName', 'composition',
+          'packSize', 'quantity', 'unitPtrInr', 'lineTotalInr', 'schemeLabel', 'createdAt'
+        ]) &&
+        data.keys().hasOnly([
+          'orderId', 'pharmacyUid', 'offerId', 'medicineName', 'composition',
+          'packSize', 'quantity', 'unitPtrInr', 'lineTotalInr', 'schemeLabel', 'createdAt'
+        ]) &&
+        data.orderId == orderId &&
+        isValidId(data.pharmacyUid) &&
+        isValidId(data.offerId) &&
+        data.medicineName is string && data.medicineName.size() >= 1 && data.medicineName.size() <= 140 &&
+        data.composition is string && data.composition.size() >= 1 && data.composition.size() <= 200 &&
+        data.packSize is string && data.packSize.size() >= 1 && data.packSize.size() <= 60 &&
+        data.quantity is int && data.quantity >= 1 && data.quantity <= 10000 &&
+        data.unitPtrInr is number && data.unitPtrInr > 0 && data.unitPtrInr <= 1000000 &&
+        data.lineTotalInr is number && data.lineTotalInr > 0 && data.lineTotalInr <= 10000000 &&
+        data.schemeLabel is string && data.schemeLabel.size() >= 1 && data.schemeLabel.size() <= 60 &&
+        data.createdAt is timestamp;
+    }
+
+    // Admins marker collection (read-only by owner, managed out-of-band)
+    match /admins/{adminId} {
+      allow get: if isValidId(adminId) && isOwner(adminId);
+      allow list, write: if false;
+    }
+
+    // Users collection (PII isolated to owner or admin)
+    match /users/{userId} {
+      allow get: if isValidId(userId) && (isOwner(userId) || isAdmin());
+      allow list: if isAdmin();
+      allow create: if isValidId(userId) &&
+        isOwner(userId) &&
+        isValidUserProfile(incoming()) &&
+        incoming().uid == userId &&
+        incoming().email == request.auth.token.email &&
+        incoming().role == 'pharmacy' &&
+        incoming().createdAt == request.time &&
+        incoming().updatedAt == request.time;
+      allow update: if isValidId(userId) &&
+        isValidUserProfile(incoming()) &&
+        (
+          isAdmin() ||
+          (
+            isOwner(userId) &&
+            incoming().uid == existing().uid &&
+            incoming().email == existing().email &&
+            incoming().role == existing().role &&
+            incoming().createdAt == existing().createdAt &&
+            incoming().updatedAt == request.time &&
+            incoming().diff(existing()).affectedKeys().hasOnly([
+              'displayName', 'photoURL', 'pharmacyName', 'drugLicenseNo',
+              'gstin', 'city', 'state', 'phone', 'updatedAt'
+            ])
+          )
+        );
+      allow delete: if isValidId(userId) && isAdmin();
+
+      // Pharmacy Urgent Restock Watchlist subcollection
+      match /watchlist/{medicineId} {
+        allow get: if isValidId(userId) && isValidId(medicineId) && (isOwner(userId) || isAdmin());
+        allow list: if isOwner(userId) || isAdmin();
+        allow create: if isValidId(userId) && isValidId(medicineId) &&
+          isOwner(userId) &&
+          isValidWatchlistItem(incoming()) &&
+          incoming().medicineId == medicineId &&
+          incoming().createdAt == request.time &&
+          incoming().updatedAt == request.time;
+        allow update: if isValidId(userId) && isValidId(medicineId) &&
+          isOwner(userId) &&
+          isValidWatchlistItem(incoming()) &&
+          incoming().medicineId == existing().medicineId &&
+          incoming().createdAt == existing().createdAt &&
+          incoming().updatedAt == request.time &&
+          incoming().diff(existing()).affectedKeys().hasOnly([
+            'targetMaxPtr', 'preferredQty', 'notes', 'updatedAt'
+          ]);
+        allow delete: if isValidId(userId) && isValidId(medicineId) && (isOwner(userId) || isAdmin());
+      }
+    }
+
+    // Verified Distributors catalog
+    match /distributors/{distributorId} {
+      allow get: if isValidId(distributorId) && isVerifiedUser();
+      allow list: if isVerifiedUser() && resource.data.active == true;
+      allow create: if isValidId(distributorId) &&
+        isAdmin() &&
+        isValidDistributor(incoming()) &&
+        incoming().id == distributorId &&
+        incoming().createdAt == request.time &&
+        incoming().updatedAt == request.time;
+      allow update: if isValidId(distributorId) &&
+        isAdmin() &&
+        isValidDistributor(incoming()) &&
+        incoming().id == existing().id &&
+        incoming().createdAt == existing().createdAt &&
+        incoming().updatedAt == request.time;
+      allow delete: if isValidId(distributorId) && isAdmin();
+    }
+
+    // Medicine Offers & Real-time Availability catalog
+    match /medicineOffers/{offerId} {
+      allow get: if isValidId(offerId) && isVerifiedUser();
+      allow list: if isVerifiedUser() && resource.data.mrpInr > 0;
+      allow create: if isValidId(offerId) &&
+        isAdmin() &&
+        isValidMedicineOffer(incoming()) &&
+        incoming().id == offerId &&
+        incoming().createdAt == request.time &&
+        incoming().updatedAt == request.time;
+      allow update: if isValidId(offerId) &&
+        isAdmin() &&
+        isValidMedicineOffer(incoming()) &&
+        incoming().id == existing().id &&
+        incoming().createdAt == existing().createdAt &&
+        incoming().updatedAt == request.time;
+      allow delete: if isValidId(offerId) && isAdmin();
+    }
+
+    // Procurement Orders
+    match /orders/{orderId} {
+      allow get: if isValidId(orderId) && isVerifiedUser() && (existing().pharmacyUid == request.auth.uid || isAdmin());
+      allow list: if isVerifiedUser() && (resource.data.pharmacyUid == request.auth.uid || isAdmin());
+      allow create: if isValidId(orderId) &&
+        isVerifiedUser() &&
+        isValidOrder(incoming()) &&
+        incoming().pharmacyUid == request.auth.uid &&
+        incoming().status == 'Placed' &&
+        incoming().createdAt == request.time &&
+        incoming().updatedAt == request.time;
+      allow update: if isValidId(orderId) &&
+        isVerifiedUser() &&
+        isValidOrder(incoming()) &&
+        (
+          isAdmin() ||
+          (
+            existing().pharmacyUid == request.auth.uid &&
+            existing().status != 'Delivered' &&
+            existing().status != 'Cancelled' &&
+            incoming().pharmacyUid == existing().pharmacyUid &&
+            incoming().createdAt == existing().createdAt &&
+            incoming().updatedAt == request.time &&
+            (
+              (
+                incoming().diff(existing()).affectedKeys().hasOnly(['status', 'updatedAt']) &&
+                (
+                  (existing().status == 'Placed' && incoming().status in ['Confirmed', 'Cancelled']) ||
+                  (existing().status == 'Confirmed' && incoming().status in ['Dispatched', 'Cancelled']) ||
+                  (existing().status == 'Dispatched' && incoming().status == 'Delivered')
+                )
+              ) ||
+              (
+                incoming().diff(existing()).affectedKeys().hasOnly(['notes', 'updatedAt']) &&
+                existing().status == 'Placed'
+              )
+            )
+          )
+        );
+      allow delete: if isValidId(orderId) && isAdmin();
+
+      // Order line items subcollection (atomic batch creation with parent order)
+      match /items/{itemId} {
+        allow get: if isValidId(orderId) && isValidId(itemId) &&
+          isVerifiedUser() &&
+          (get(/databases/$(database)/documents/orders/$(orderId)).data.pharmacyUid == request.auth.uid || isAdmin());
+        allow list: if isVerifiedUser() && (resource.data.pharmacyUid == request.auth.uid || isAdmin());
+        allow create: if isValidId(orderId) && isValidId(itemId) &&
+          isVerifiedUser() &&
+          isValidOrderItem(incoming(), orderId) &&
+          incoming().pharmacyUid == request.auth.uid &&
+          incoming().createdAt == request.time &&
+          getAfter(/databases/$(database)/documents/orders/$(orderId)).data.pharmacyUid == request.auth.uid;
+        allow update: if false;
+        allow delete: if isValidId(orderId) && isValidId(itemId) && isAdmin();
+      }
+    }
+  }
+}

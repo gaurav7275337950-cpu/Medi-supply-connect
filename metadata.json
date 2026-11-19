@@ -1,0 +1,6 @@
+{
+  "name": "MediSupply Connect",
+  "description": "B2B pharmaceutical procurement platform connecting independent retail pharmacies in Uttar Pradesh and Uttarakhand with verified distributors for real-time medicine availability, price comparison, and order tracking.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

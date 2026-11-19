@@ -1,0 +1,484 @@
+{
+  "entities": {
+    "UserProfile": {
+      "title": "UserProfile",
+      "description": "Authenticated retail pharmacy owner or pharmacist profile in MediSupply Connect.",
+      "type": "object",
+      "properties": {
+        "uid": {
+          "type": "string",
+          "maxLength": 128,
+          "pattern": "^[a-zA-Z0-9_\\-]+$"
+        },
+        "displayName": {
+          "type": "string",
+          "maxLength": 120
+        },
+        "email": {
+          "type": "string",
+          "maxLength": 254
+        },
+        "photoURL": {
+          "type": "string",
+          "maxLength": 500
+        },
+        "pharmacyName": {
+          "type": "string",
+          "maxLength": 140
+        },
+        "drugLicenseNo": {
+          "type": "string",
+          "maxLength": 60
+        },
+        "gstin": {
+          "type": "string",
+          "maxLength": 20
+        },
+        "city": {
+          "type": "string",
+          "maxLength": 80
+        },
+        "state": {
+          "type": "string",
+          "enum": ["Uttar Pradesh", "Uttarakhand", "Other"]
+        },
+        "phone": {
+          "type": "string",
+          "maxLength": 20
+        },
+        "role": {
+          "type": "string",
+          "enum": ["pharmacy", "admin"]
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "updatedAt": {
+          "type": "string",
+          "format": "date-time"
+        }
+      },
+      "required": [
+        "uid",
+        "displayName",
+        "email",
+        "pharmacyName",
+        "city",
+        "state",
+        "role",
+        "createdAt",
+        "updatedAt"
+      ]
+    },
+    "Distributor": {
+      "title": "Distributor",
+      "description": "Verified pharmaceutical distributor operating in Uttar Pradesh and Uttarakhand.",
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string",
+          "maxLength": 128,
+          "pattern": "^[a-zA-Z0-9_\\-]+$"
+        },
+        "name": {
+          "type": "string",
+          "maxLength": 140
+        },
+        "city": {
+          "type": "string",
+          "maxLength": 80
+        },
+        "state": {
+          "type": "string",
+          "enum": ["Uttar Pradesh", "Uttarakhand"]
+        },
+        "licenseNumber": {
+          "type": "string",
+          "maxLength": 60
+        },
+        "deliveryWindow": {
+          "type": "string",
+          "maxLength": 60
+        },
+        "minOrderInr": {
+          "type": "number"
+        },
+        "rating": {
+          "type": "number"
+        },
+        "verified": {
+          "type": "boolean"
+        },
+        "active": {
+          "type": "boolean"
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "updatedAt": {
+          "type": "string",
+          "format": "date-time"
+        }
+      },
+      "required": [
+        "id",
+        "name",
+        "city",
+        "state",
+        "licenseNumber",
+        "deliveryWindow",
+        "minOrderInr",
+        "rating",
+        "verified",
+        "active",
+        "createdAt",
+        "updatedAt"
+      ]
+    },
+    "MedicineOffer": {
+      "title": "MedicineOffer",
+      "description": "Distributor-specific medicine pricing, stock availability, and delivery terms.",
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string",
+          "maxLength": 128,
+          "pattern": "^[a-zA-Z0-9_\\-]+$"
+        },
+        "medicineId": {
+          "type": "string",
+          "maxLength": 128,
+          "pattern": "^[a-zA-Z0-9_\\-]+$"
+        },
+        "medicineName": {
+          "type": "string",
+          "maxLength": 140
+        },
+        "composition": {
+          "type": "string",
+          "maxLength": 200
+        },
+        "manufacturer": {
+          "type": "string",
+          "maxLength": 120
+        },
+        "packSize": {
+          "type": "string",
+          "maxLength": 60
+        },
+        "category": {
+          "type": "string",
+          "enum": [
+            "Antibiotics",
+            "Cardiac & Diabetic",
+            "Gastro & Acid Reflux",
+            "Pain & Fever",
+            "Respiratory",
+            "Vitamins & OTC"
+          ]
+        },
+        "hsnCode": {
+          "type": "string",
+          "maxLength": 20
+        },
+        "mrpInr": {
+          "type": "number"
+        },
+        "distributorId": {
+          "type": "string",
+          "maxLength": 128,
+          "pattern": "^[a-zA-Z0-9_\\-]+$"
+        },
+        "distributorName": {
+          "type": "string",
+          "maxLength": 140
+        },
+        "distributorCity": {
+          "type": "string",
+          "maxLength": 80
+        },
+        "ptrInr": {
+          "type": "number"
+        },
+        "schemeLabel": {
+          "type": "string",
+          "maxLength": 60
+        },
+        "stockQty": {
+          "type": "integer"
+        },
+        "stockStatus": {
+          "type": "string",
+          "enum": ["In Stock", "Low Stock", "Out of Stock"]
+        },
+        "minQty": {
+          "type": "integer"
+        },
+        "deliveryEta": {
+          "type": "string",
+          "maxLength": 60
+        },
+        "expiryDate": {
+          "type": "string",
+          "maxLength": 20
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "updatedAt": {
+          "type": "string",
+          "format": "date-time"
+        }
+      },
+      "required": [
+        "id",
+        "medicineId",
+        "medicineName",
+        "composition",
+        "manufacturer",
+        "packSize",
+        "category",
+        "hsnCode",
+        "mrpInr",
+        "distributorId",
+        "distributorName",
+        "distributorCity",
+        "ptrInr",
+        "schemeLabel",
+        "stockQty",
+        "stockStatus",
+        "minQty",
+        "deliveryEta",
+        "expiryDate",
+        "createdAt",
+        "updatedAt"
+      ]
+    },
+    "ProcurementOrder": {
+      "title": "ProcurementOrder",
+      "description": "B2B medicine procurement order placed by an independent pharmacy to a verified distributor.",
+      "type": "object",
+      "properties": {
+        "orderNumber": {
+          "type": "string",
+          "maxLength": 40
+        },
+        "pharmacyUid": {
+          "type": "string",
+          "maxLength": 128,
+          "pattern": "^[a-zA-Z0-9_\\-]+$"
+        },
+        "pharmacyName": {
+          "type": "string",
+          "maxLength": 140
+        },
+        "pharmacyCity": {
+          "type": "string",
+          "maxLength": 80
+        },
+        "pharmacyState": {
+          "type": "string",
+          "maxLength": 60
+        },
+        "distributorId": {
+          "type": "string",
+          "maxLength": 128,
+          "pattern": "^[a-zA-Z0-9_\\-]+$"
+        },
+        "distributorName": {
+          "type": "string",
+          "maxLength": 140
+        },
+        "itemCount": {
+          "type": "integer"
+        },
+        "subtotalInr": {
+          "type": "number"
+        },
+        "platformFeeInr": {
+          "type": "number"
+        },
+        "totalInr": {
+          "type": "number"
+        },
+        "status": {
+          "type": "string",
+          "enum": ["Placed", "Confirmed", "Dispatched", "Delivered", "Cancelled"]
+        },
+        "deliveryEta": {
+          "type": "string",
+          "maxLength": 60
+        },
+        "notes": {
+          "type": "string",
+          "maxLength": 400
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "updatedAt": {
+          "type": "string",
+          "format": "date-time"
+        }
+      },
+      "required": [
+        "orderNumber",
+        "pharmacyUid",
+        "pharmacyName",
+        "pharmacyCity",
+        "pharmacyState",
+        "distributorId",
+        "distributorName",
+        "itemCount",
+        "subtotalInr",
+        "platformFeeInr",
+        "totalInr",
+        "status",
+        "deliveryEta",
+        "createdAt",
+        "updatedAt"
+      ]
+    },
+    "ProcurementOrderItem": {
+      "title": "ProcurementOrderItem",
+      "description": "Line item belonging to a procurement order.",
+      "type": "object",
+      "properties": {
+        "orderId": {
+          "type": "string",
+          "maxLength": 128,
+          "pattern": "^[a-zA-Z0-9_\\-]+$"
+        },
+        "pharmacyUid": {
+          "type": "string",
+          "maxLength": 128,
+          "pattern": "^[a-zA-Z0-9_\\-]+$"
+        },
+        "offerId": {
+          "type": "string",
+          "maxLength": 128,
+          "pattern": "^[a-zA-Z0-9_\\-]+$"
+        },
+        "medicineName": {
+          "type": "string",
+          "maxLength": 140
+        },
+        "composition": {
+          "type": "string",
+          "maxLength": 200
+        },
+        "packSize": {
+          "type": "string",
+          "maxLength": 60
+        },
+        "quantity": {
+          "type": "integer"
+        },
+        "unitPtrInr": {
+          "type": "number"
+        },
+        "lineTotalInr": {
+          "type": "number"
+        },
+        "schemeLabel": {
+          "type": "string",
+          "maxLength": 60
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time"
+        }
+      },
+      "required": [
+        "orderId",
+        "pharmacyUid",
+        "offerId",
+        "medicineName",
+        "composition",
+        "packSize",
+        "quantity",
+        "unitPtrInr",
+        "lineTotalInr",
+        "schemeLabel",
+        "createdAt"
+      ]
+    },
+    "WatchlistItem": {
+      "title": "WatchlistItem",
+      "description": "Saved urgent restock medicine tracked by a pharmacy.",
+      "type": "object",
+      "properties": {
+        "medicineId": {
+          "type": "string",
+          "maxLength": 128,
+          "pattern": "^[a-zA-Z0-9_\\-]+$"
+        },
+        "medicineName": {
+          "type": "string",
+          "maxLength": 140
+        },
+        "composition": {
+          "type": "string",
+          "maxLength": 200
+        },
+        "targetMaxPtr": {
+          "type": "number"
+        },
+        "preferredQty": {
+          "type": "integer"
+        },
+        "notes": {
+          "type": "string",
+          "maxLength": 240
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "updatedAt": {
+          "type": "string",
+          "format": "date-time"
+        }
+      },
+      "required": [
+        "medicineId",
+        "medicineName",
+        "composition",
+        "targetMaxPtr",
+        "preferredQty",
+        "createdAt",
+        "updatedAt"
+      ]
+    }
+  },
+  "firestore": {
+    "/users/{userId}": {
+      "schema": { "$ref": "#/entities/UserProfile" },
+      "description": "Private pharmacy profile and licensing metadata scoped strictly to the owning user."
+    },
+    "/users/{userId}/watchlist/{medicineId}": {
+      "schema": { "$ref": "#/entities/WatchlistItem" },
+      "description": "Pharmacy's urgent restock watchlist items."
+    },
+    "/distributors/{distributorId}": {
+      "schema": { "$ref": "#/entities/Distributor" },
+      "description": "Verified pharmaceutical distributors serving Uttar Pradesh and Uttarakhand."
+    },
+    "/medicineOffers/{offerId}": {
+      "schema": { "$ref": "#/entities/MedicineOffer" },
+      "description": "Real-time distributor inventory, PTR pricing, and scheme offers."
+    },
+    "/orders/{orderId}": {
+      "schema": { "$ref": "#/entities/ProcurementOrder" },
+      "description": "Procurement orders placed by signed-in pharmacies."
+    },
+    "/orders/{orderId}/items/{itemId}": {
+      "schema": { "$ref": "#/entities/ProcurementOrderItem" },
+      "description": "Line items belonging to a procurement order."
+    }
+  }
+}
